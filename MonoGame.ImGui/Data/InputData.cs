@@ -34,7 +34,7 @@ public class InputData {
         io.KeyAlt = keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt);
         io.KeySuper = keyboard.IsKeyDown(Keys.LeftWindows) || keyboard.IsKeyDown(Keys.RightWindows);
 
-        io.DisplaySize = new Vector2(device.PresentationParameters.BackBufferWidth, device.PresentationParameters.BackBufferHeight);
+        io.DisplaySize = new Vector2(game.GraphicsDevice.PresentationParameters.BackBufferWidth, game.GraphicsDevice.PresentationParameters.BackBufferHeight);
         io.DisplayFramebufferScale = new Vector2(1f, 1f);
 
         io.MousePos = new Vector2(mouse.X, mouse.Y);
@@ -51,7 +51,7 @@ public class InputData {
     }
     
     private void UpdateCursor() {
-        MouseCursor mouseCursor = ImGui.GetMouseCursor() switch {
+        MouseCursor mouseCursor = ImGuiNET.ImGui.GetMouseCursor() switch {
             ImGuiMouseCursor.None => MouseCursor.Arrow,
             ImGuiMouseCursor.Arrow => MouseCursor.Arrow,
             ImGuiMouseCursor.TextInput => MouseCursor.IBeam,

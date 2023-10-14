@@ -12,7 +12,7 @@ namespace MonoGame.ImGui;
 ///     Responsible for rendering the ImGui elements to the screen.
 /// </summary>
 public class ImGuiRenderer {
-    public ImGuiRenderer(Game owner) {
+    public ImGuiRenderer(Game owner, DepthStencilState depthStencilState) {
         Owner = owner;
         _effect = new BasicEffect(owner.GraphicsDevice);
         _textureData = new TextureData();
@@ -20,6 +20,7 @@ public class ImGuiRenderer {
         _inputData = new InputData();
         _vertex = new VertexData();
         _index = new IndexData();
+        _depthStencilState = depthStencilState;
     }
 
     public Game Owner { get; }
@@ -35,7 +36,7 @@ public class ImGuiRenderer {
 
     public virtual void EndLayout() {
         ImGuiNET.ImGui.Render();
-        RenderDrawData(ImGuiNET.ImGui.GetDrawData());
+        RenderDrawData(ImGuiNET.ImGui.GetDrawData(), _depthStencilState);
     }
 
     public virtual IntPtr BindTexture(Texture2D texture) {
@@ -83,7 +84,7 @@ public class ImGuiRenderer {
         return this;
     }
 
-    private void RenderDrawData(ImDrawDataPtr drawData) {
+    private void RenderDrawData(ImDrawDataPtr drawData, DepthStencilState depthStencilState) {
         // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers
         var lastViewport = GraphicsDevice.Viewport;
         var lastScissorRect = GraphicsDevice.ScissorRectangle;
@@ -91,7 +92,7 @@ public class ImGuiRenderer {
         GraphicsDevice.BlendFactor = Color.White;
         GraphicsDevice.BlendState = BlendState.NonPremultiplied;
         GraphicsDevice.RasterizerState = _rasterizerState;
-        GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+        GraphicsDevice.DepthStencilState = depthStencilState;
         GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp; //ADD THIS LINE
 
 
@@ -116,7 +117,7 @@ public class ImGuiRenderer {
         var vertexOffset = 0;
         var indexOffset = 0;
         for (var i = 0; i < drawData.CmdListsCount; ++i) {
-            var commandList = drawData.CmdListsRange[i];
+            var commandList = drawData.CmdLists[i];
             for (var commandIndex = 0; commandIndex < commandList.CmdBuffer.Size; ++commandIndex) {
                 var drawCommand = commandList.CmdBuffer[commandIndex];
 
@@ -197,7 +198,7 @@ public class ImGuiRenderer {
         var indexOffset = 0;
 
         for (var i = 0; i < drawData.CmdListsCount; ++i) {
-            var commands = drawData.CmdListsRange[i];
+            var commands = drawData.CmdLists[i];
             fixed (void* vtxDstPtr = &_vertex.Data[vertexOffset * DrawVertDeclaration.Size])
             fixed (void* idxDstPtr = &_index.Data[indexOffset * sizeof(ushort)]) {
                 Buffer.MemoryCopy((void*) commands.VtxBuffer.Data, vtxDstPtr, _vertex.Data.Length, commands.VtxBuffer.Size * DrawVertDeclaration.Size);
@@ -219,4 +220,5 @@ public class ImGuiRenderer {
     private readonly TextureData _textureData;
     private readonly BasicEffect _effect;
     private readonly RasterizerState _rasterizerState;
+    private readonly DepthStencilState _depthStencilState;
 }
